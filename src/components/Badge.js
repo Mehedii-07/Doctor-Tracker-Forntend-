@@ -8,23 +8,23 @@ export default function Badge({ type = 'condition', value = '' }) {
   const valLower = value.toLowerCase();
 
   let badgeClass = 'badge-primary';
-  let dotColor = '#3a86ff';
+  let dotColor = '#64748b';
 
   if (valLower.includes('crit')) {
     badgeClass = 'badge-critical';
-    dotColor = '#f43f5e';
+    dotColor = '#dc2626';
   } else if (valLower.includes('seri')) {
     badgeClass = 'badge-serious';
-    dotColor = '#f59e0b';
+    dotColor = '#d97706';
   } else if (valLower.includes('stab') || valLower.includes('act')) {
     badgeClass = 'badge-stable';
-    dotColor = '#10b981';
+    dotColor = '#16a34a';
   } else if (valLower.includes('chron')) {
     badgeClass = 'badge-chronic';
-    dotColor = '#8b5cf6';
+    dotColor = '#9333ea';
   } else if (valLower.includes('recov') || valLower.includes('disch')) {
     badgeClass = 'badge-recovering';
-    dotColor = '#00d2ff';
+    dotColor = '#2563eb';
   }
 
   return (
@@ -35,9 +35,11 @@ export default function Badge({ type = 'condition', value = '' }) {
           height: '6px',
           borderRadius: '50%',
           backgroundColor: dotColor,
+          display: 'inline-block',
+          flexShrink: 0,
         }}
       />
-      {value}
+      <span>{value}</span>
     </span>
   );
 }

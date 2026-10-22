@@ -9,7 +9,16 @@ const AuthContext = createContext({
   token: null,
   loading: true,
   isAuthenticated: false,
+  role: 'visitor',
+  isAdmin: false,
+  isManager: false,
+  isViewer: true,
+  isVisitor: true,
+  canCreate: false,
+  canEdit: false,
+  canDelete: false,
   login: async () => {},
+  register: async () => {},
   logout: () => {},
 });
 
@@ -59,7 +68,7 @@ export const AuthProvider = ({ children }) => {
   // Route protection effect
   useEffect(() => {
     if (!loading) {
-      const isAuthPage = pathname === '/login';
+      const isAuthPage = pathname === '/login' || pathname === '/register';
       if (!token && !isAuthPage) {
         router.push('/login');
       } else if (token && isAuthPage) {
@@ -81,6 +90,19 @@ export const AuthProvider = ({ children }) => {
     throw new Error(res.message || 'Login failed');
   };
 
+  const register = async (name, email, password, role = 'admin') => {
+    const res = await authApi.register({ name, email, password, role });
+    if (res.success && res.token) {
+      localStorage.setItem('doctor_tracker_token', res.token);
+      localStorage.setItem('doctor_tracker_user', JSON.stringify(res.user));
+      setToken(res.token);
+      setUser(res.user);
+      router.push('/');
+      return res;
+    }
+    throw new Error(res.message || 'Registration failed');
+  };
+
   const logout = () => {
     localStorage.removeItem('doctor_tracker_token');
     localStorage.removeItem('doctor_tracker_user');
@@ -89,6 +111,15 @@ export const AuthProvider = ({ children }) => {
     router.push('/login');
   };
 
+  const userRole = (user?.role || 'visitor').toLowerCase();
+  const isAdmin = userRole === 'admin';
+  const isManager = userRole === 'manager';
+  const isViewer = userRole === 'viewer' || userRole === 'visitor';
+  const isVisitor = userRole === 'visitor' || userRole === 'viewer';
+  const canCreate = ['admin', 'manager'].includes(userRole);
+  const canEdit = ['admin', 'manager'].includes(userRole);
+  const canDelete = userRole === 'admin';
+
   return (
     <AuthContext.Provider
       value={{
@@ -96,7 +127,16 @@ export const AuthProvider = ({ children }) => {
         token,
         loading,
         isAuthenticated: !!token,
+        role: userRole,
+        isAdmin,
+        isManager,
+        isViewer,
+        isVisitor,
+        canCreate,
+        canEdit,
+        canDelete,
         login,
+        register,
         logout,
       }}
     >

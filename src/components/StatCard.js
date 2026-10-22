@@ -5,24 +5,24 @@ import React from 'react';
 export default function StatCard({ title, value, icon: Icon, color = 'cyan', subtitle, trend }) {
   const colorMap = {
     cyan: {
-      bg: 'rgba(0, 210, 255, 0.1)',
-      border: 'rgba(0, 210, 255, 0.25)',
-      text: '#00d2ff',
+      bg: '#eff6ff',
+      border: '#bfdbfe',
+      text: '#2563eb',
     },
     emerald: {
-      bg: 'rgba(16, 185, 129, 0.1)',
-      border: 'rgba(16, 185, 129, 0.25)',
-      text: '#34d399',
+      bg: '#f0fdf4',
+      border: '#bbf7d0',
+      text: '#16a34a',
     },
     purple: {
-      bg: 'rgba(139, 92, 246, 0.1)',
-      border: 'rgba(139, 92, 246, 0.25)',
-      text: '#a78bfa',
+      bg: '#faf5ff',
+      border: '#e9d5ff',
+      text: '#9333ea',
     },
     rose: {
-      bg: 'rgba(244, 63, 94, 0.1)',
-      border: 'rgba(244, 63, 94, 0.25)',
-      text: '#fb7185',
+      bg: '#fef2f2',
+      border: '#fecaca',
+      text: '#dc2626',
     },
   };
 
@@ -30,22 +30,47 @@ export default function StatCard({ title, value, icon: Icon, color = 'cyan', sub
 
   return (
     <div className="stat-card">
-      <div style={{ zIndex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
-        <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        <span
+          style={{
+            fontSize: '0.76rem',
+            fontWeight: 600,
+            color: 'var(--text-muted)',
+            textTransform: 'uppercase',
+            letterSpacing: '0.04em',
+          }}
+        >
           {title}
         </span>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px' }}>
-          <span style={{ fontSize: '2.2rem', fontWeight: 800, color: '#fff', letterSpacing: '-0.03em' }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', flexWrap: 'wrap' }}>
+          <span
+            style={{
+              fontSize: '1.85rem',
+              fontWeight: 700,
+              color: 'var(--text-main)',
+              letterSpacing: '-0.02em',
+              lineHeight: 1.1,
+            }}
+          >
             {value !== undefined && value !== null ? value : '...'}
           </span>
           {trend && (
-            <span style={{ fontSize: '0.78rem', color: '#34d399', fontWeight: 600 }}>
+            <span
+              style={{
+                fontSize: '0.74rem',
+                color: color === 'rose' ? '#dc2626' : '#16a34a',
+                fontWeight: 600,
+                backgroundColor: color === 'rose' ? '#fef2f2' : '#f0fdf4',
+                padding: '2px 6px',
+                borderRadius: '4px',
+              }}
+            >
               {trend}
             </span>
           )}
         </div>
         {subtitle && (
-          <span style={{ fontSize: '0.76rem', color: 'var(--text-dim)' }}>
+          <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>
             {subtitle}
           </span>
         )}
@@ -53,19 +78,19 @@ export default function StatCard({ title, value, icon: Icon, color = 'cyan', sub
 
       <div
         style={{
-          width: '52px',
-          height: '52px',
-          borderRadius: '14px',
-          background: scheme.bg,
+          width: '44px',
+          height: '44px',
+          borderRadius: '10px',
+          backgroundColor: scheme.bg,
           border: `1px solid ${scheme.border}`,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           color: scheme.text,
-          zIndex: 1,
+          flexShrink: 0,
         }}
       >
-        {Icon && <Icon size={26} strokeWidth={2.2} />}
+        {Icon && <Icon size={22} strokeWidth={2} />}
       </div>
     </div>
   );

@@ -14,8 +14,8 @@ export default function Pagination({ pagination, onPageChange, onLimitChange }) 
 
   const getPageNumbers = () => {
     const pages = [];
-    const maxVisible = 5;
-    let start = Math.max(1, page - 2);
+    const maxVisible = 4;
+    let start = Math.max(1, page - 1);
     let end = Math.min(totalPages, start + maxVisible - 1);
 
     if (end - start < maxVisible - 1) {
@@ -34,28 +34,27 @@ export default function Pagination({ pagination, onPageChange, onLimitChange }) 
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: '16px 20px',
+        padding: '12px 16px',
         borderTop: '1px solid var(--border-subtle)',
-        background: 'var(--bg-surface)',
+        backgroundColor: '#ffffff',
         flexWrap: 'wrap',
         gap: '12px',
       }}
     >
-      <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-        Showing <strong style={{ color: '#fff' }}>{totalRecords > 0 ? startRecord : 0}</strong> to{' '}
-        <strong style={{ color: '#fff' }}>{endRecord}</strong> of{' '}
-        <strong style={{ color: '#fff' }}>{totalRecords}</strong> records
+      <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+        Showing <strong>{totalRecords > 0 ? startRecord : 0}</strong>–
+        <strong>{endRecord}</strong> of <strong>{totalRecords}</strong>
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
         {onLimitChange && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontSize: '0.8rem', color: 'var(--text-dim)' }}>Per page:</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{ fontSize: '0.78rem', color: 'var(--text-dim)' }}>Per page:</span>
             <select
               value={limit}
               onChange={(e) => onLimitChange(Number(e.target.value))}
               className="form-select"
-              style={{ width: '70px', padding: '4px 8px', fontSize: '0.8rem' }}
+              style={{ width: '64px', padding: '4px 6px', fontSize: '0.78rem' }}
             >
               <option value={5}>5</option>
               <option value={10}>10</option>
@@ -65,15 +64,19 @@ export default function Pagination({ pagination, onPageChange, onLimitChange }) 
           </div>
         )}
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
           <button
             onClick={() => onPageChange(page - 1)}
             disabled={page <= 1}
             className="btn-icon"
-            style={{ opacity: page <= 1 ? 0.4 : 1, cursor: page <= 1 ? 'not-allowed' : 'pointer' }}
+            style={{
+              padding: '5px',
+              opacity: page <= 1 ? 0.4 : 1,
+              cursor: page <= 1 ? 'not-allowed' : 'pointer',
+            }}
             aria-label="Previous page"
           >
-            <ChevronLeft size={16} />
+            <ChevronLeft size={15} />
           </button>
 
           {getPageNumbers().map((p) => (
@@ -81,14 +84,15 @@ export default function Pagination({ pagination, onPageChange, onLimitChange }) 
               key={p}
               onClick={() => onPageChange(p)}
               style={{
-                width: '32px',
-                height: '32px',
-                borderRadius: '8px',
+                minWidth: '28px',
+                height: '28px',
+                padding: '0 6px',
+                borderRadius: 'var(--radius-sm)',
                 border: p === page ? '1px solid var(--primary)' : '1px solid var(--border-subtle)',
-                background: p === page ? 'var(--primary-glow)' : 'var(--bg-surface-elevated)',
-                color: p === page ? 'var(--primary)' : 'var(--text-muted)',
-                fontWeight: p === page ? 700 : 500,
-                fontSize: '0.82rem',
+                backgroundColor: p === page ? 'var(--primary)' : '#ffffff',
+                color: p === page ? '#ffffff' : 'var(--text-muted)',
+                fontWeight: p === page ? 600 : 400,
+                fontSize: '0.78rem',
                 cursor: 'pointer',
               }}
             >
@@ -100,10 +104,14 @@ export default function Pagination({ pagination, onPageChange, onLimitChange }) 
             onClick={() => onPageChange(page + 1)}
             disabled={page >= totalPages}
             className="btn-icon"
-            style={{ opacity: page >= totalPages ? 0.4 : 1, cursor: page >= totalPages ? 'not-allowed' : 'pointer' }}
+            style={{
+              padding: '5px',
+              opacity: page >= totalPages ? 0.4 : 1,
+              cursor: page >= totalPages ? 'not-allowed' : 'pointer',
+            }}
             aria-label="Next page"
           >
-            <ChevronRight size={16} />
+            <ChevronRight size={15} />
           </button>
         </div>
       </div>

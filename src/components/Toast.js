@@ -13,33 +13,28 @@ export default function Toast({ message, type = 'success', onClose }) {
     <div
       style={{
         position: 'fixed',
-        bottom: '24px',
-        right: '24px',
+        bottom: '20px',
+        right: '20px',
+        maxWidth: 'calc(100vw - 40px)',
         zIndex: 200,
         display: 'flex',
         alignItems: 'center',
-        gap: '12px',
-        padding: '14px 20px',
-        borderRadius: '12px',
-        background: isSuccess
-          ? 'rgba(16, 185, 129, 0.95)'
-          : isError
-          ? 'rgba(244, 63, 94, 0.95)'
-          : 'rgba(58, 134, 255, 0.95)',
-        color: '#fff',
-        boxShadow: '0 8px 30px rgba(0,0,0,0.5)',
-        backdropFilter: 'blur(10px)',
-        fontSize: '0.88rem',
-        fontWeight: 600,
-        maxWidth: '420px',
-        animation: 'slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+        gap: '10px',
+        padding: '12px 16px',
+        borderRadius: 'var(--radius-md)',
+        backgroundColor: isSuccess ? '#16a34a' : isError ? '#dc2626' : '#2563eb',
+        color: '#ffffff',
+        boxShadow: 'var(--shadow-lg)',
+        fontSize: '0.84rem',
+        fontWeight: 500,
+        animation: 'slideUp 0.25s ease-out',
       }}
     >
-      {isSuccess && <CheckCircle2 size={20} />}
-      {isError && <AlertCircle size={20} />}
-      {!isSuccess && !isError && <Info size={20} />}
+      {isSuccess && <CheckCircle2 size={18} />}
+      {isError && <AlertCircle size={18} />}
+      {!isSuccess && !isError && <Info size={18} />}
       
-      <span style={{ flex: 1 }}>{message}</span>
+      <span style={{ flex: 1, wordBreak: 'break-word' }}>{message}</span>
 
       {onClose && (
         <button
@@ -47,13 +42,16 @@ export default function Toast({ message, type = 'success', onClose }) {
           style={{
             background: 'transparent',
             border: 'none',
-            color: '#fff',
+            color: '#ffffff',
             cursor: 'pointer',
             padding: '2px',
             opacity: 0.8,
+            display: 'flex',
+            alignItems: 'center',
           }}
+          aria-label="Close notification"
         >
-          <X size={16} />
+          <X size={15} />
         </button>
       )}
     </div>

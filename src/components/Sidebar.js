@@ -24,7 +24,6 @@ export default function Sidebar({ isOpen, onClose }) {
       name: 'Dashboard',
       href: '/',
       icon: LayoutDashboard,
-      badge: 'Live',
     },
     {
       name: 'Doctors',
@@ -47,10 +46,11 @@ export default function Sidebar({ isOpen, onClose }) {
           style={{
             position: 'fixed',
             inset: 0,
-            background: 'rgba(0,0,0,0.6)',
-            zIndex: 35,
-            backdropFilter: 'blur(4px)',
+            backgroundColor: 'rgba(15, 23, 42, 0.4)',
+            zIndex: 45,
+            transition: 'opacity 0.2s ease',
           }}
+          aria-hidden="true"
         />
       )}
 
@@ -58,35 +58,34 @@ export default function Sidebar({ isOpen, onClose }) {
         {/* Brand / Logo */}
         <div
           style={{
-            padding: '24px 20px',
+            padding: '20px',
             borderBottom: '1px solid var(--border-subtle)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <div
               style={{
-                width: '42px',
-                height: '42px',
-                borderRadius: '12px',
-                background: 'linear-gradient(135deg, #00d2ff 0%, #3a86ff 100%)',
+                width: '36px',
+                height: '36px',
+                borderRadius: '8px',
+                backgroundColor: 'var(--primary)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: '#050b17',
-                boxShadow: '0 4px 14px rgba(0, 210, 255, 0.4)',
+                color: '#ffffff',
               }}
             >
-              <Activity size={24} strokeWidth={2.5} />
+              <Activity size={20} strokeWidth={2.4} />
             </div>
             <div>
-              <div style={{ fontWeight: 800, fontSize: '1.05rem', letterSpacing: '-0.02em' }}>
+              <div style={{ fontWeight: 700, fontSize: '1.05rem', color: 'var(--text-main)', letterSpacing: '-0.02em' }}>
                 Doctor<span style={{ color: 'var(--primary)' }}>Tracker</span>
               </div>
-              <div style={{ fontSize: '0.72rem', color: 'var(--text-dim)', fontWeight: 500 }}>
-                HOSPITAL ADMIN PORTAL
+              <div style={{ fontSize: '0.7rem', color: 'var(--text-dim)', fontWeight: 500 }}>
+                CLINIC MANAGEMENT
               </div>
             </div>
           </div>
@@ -95,24 +94,25 @@ export default function Sidebar({ isOpen, onClose }) {
             onClick={onClose}
             className="btn-icon"
             style={{ display: isOpen ? 'flex' : 'none' }}
+            aria-label="Close sidebar"
           >
             <X size={18} />
           </button>
         </div>
 
         {/* Navigation list */}
-        <div style={{ padding: '20px 14px', flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        <div style={{ padding: '16px 12px', flex: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
           <div
             style={{
-              fontSize: '0.7rem',
+              fontSize: '0.68rem',
               fontWeight: 700,
               textTransform: 'uppercase',
               color: 'var(--text-dim)',
-              letterSpacing: '0.08em',
-              padding: '6px 12px 10px',
+              letterSpacing: '0.06em',
+              padding: '6px 12px 8px',
             }}
           >
-            Main Navigation
+            Menu
           </div>
 
           {navItems.map((item) => {
@@ -128,36 +128,20 @@ export default function Sidebar({ isOpen, onClose }) {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  padding: '12px 14px',
-                  borderRadius: '10px',
-                  fontSize: '0.9rem',
+                  padding: '10px 14px',
+                  borderRadius: 'var(--radius-sm)',
+                  fontSize: '0.88rem',
                   fontWeight: isActive ? 600 : 500,
-                  color: isActive ? '#00d2ff' : 'var(--text-muted)',
-                  background: isActive ? 'rgba(0, 210, 255, 0.08)' : 'transparent',
-                  border: isActive ? '1px solid rgba(0, 210, 255, 0.2)' : '1px solid transparent',
-                  transition: 'all 0.15s ease',
+                  color: isActive ? 'var(--primary)' : 'var(--text-muted)',
+                  backgroundColor: isActive ? 'var(--primary-light)' : 'transparent',
+                  transition: 'background-color 0.15s ease, color 0.15s ease',
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <Icon size={20} color={isActive ? '#00d2ff' : 'currentColor'} />
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <Icon size={18} color={isActive ? 'var(--primary)' : 'currentColor'} />
                   <span>{item.name}</span>
                 </div>
-                {item.badge && (
-                  <span
-                    style={{
-                      fontSize: '0.65rem',
-                      fontWeight: 700,
-                      padding: '2px 8px',
-                      borderRadius: '999px',
-                      background: 'rgba(16, 185, 129, 0.2)',
-                      color: '#34d399',
-                      border: '1px solid rgba(16, 185, 129, 0.4)',
-                    }}
-                  >
-                    {item.badge}
-                  </span>
-                )}
-                {!item.badge && isActive && <ChevronRight size={16} />}
+                {isActive && <ChevronRight size={16} />}
               </Link>
             );
           })}
@@ -166,34 +150,35 @@ export default function Sidebar({ isOpen, onClose }) {
         {/* User Card & Logout */}
         <div
           style={{
-            padding: '16px',
+            padding: '14px',
             borderTop: '1px solid var(--border-subtle)',
-            background: 'var(--bg-surface-elevated)',
-            margin: '12px',
-            borderRadius: 'var(--radius-md)',
+            backgroundColor: '#f8fafc',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
             <div
               style={{
-                width: '38px',
-                height: '38px',
+                width: '36px',
+                height: '36px',
                 borderRadius: '50%',
-                background: 'linear-gradient(135deg, #3a86ff, #8b5cf6)',
+                backgroundColor: 'var(--primary-light)',
+                color: 'var(--primary)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 fontWeight: 700,
-                fontSize: '0.88rem',
+                fontSize: '0.86rem',
+                border: '1px solid var(--primary-border)',
               }}
             >
               {user?.name ? user.name.charAt(0).toUpperCase() : 'A'}
             </div>
-            <div style={{ overflow: 'hidden' }}>
+            <div style={{ overflow: 'hidden', flex: 1 }}>
               <div
                 style={{
                   fontWeight: 600,
-                  fontSize: '0.85rem',
+                  fontSize: '0.84rem',
+                  color: 'var(--text-main)',
                   whiteSpace: 'nowrap',
                   textOverflow: 'ellipsis',
                   overflow: 'hidden',
@@ -210,8 +195,21 @@ export default function Sidebar({ isOpen, onClose }) {
                   gap: '4px',
                 }}
               >
-                <ShieldCheck size={12} color="#10b981" />
-                <span>{user?.role || 'Admin'}</span>
+                <ShieldCheck
+                  size={12}
+                  color={
+                    user?.role === 'visitor' || user?.role === 'viewer'
+                      ? '#64748b'
+                      : 'var(--accent-emerald)'
+                  }
+                />
+                <span style={{ textTransform: 'capitalize' }}>
+                  {user?.role === 'visitor'
+                    ? 'Visitor (View Only)'
+                    : user?.role === 'viewer'
+                    ? 'Viewer (View Only)'
+                    : user?.role || 'Admin'}
+                </span>
               </div>
             </div>
           </div>
@@ -223,19 +221,29 @@ export default function Sidebar({ isOpen, onClose }) {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: '8px',
-              padding: '8px 12px',
-              borderRadius: '8px',
-              background: 'rgba(244, 63, 94, 0.1)',
-              color: '#fb7185',
-              border: '1px solid rgba(244, 63, 94, 0.25)',
-              fontSize: '0.8rem',
-              fontWeight: 600,
+              gap: '6px',
+              padding: '7px 10px',
+              borderRadius: 'var(--radius-sm)',
+              backgroundColor: '#ffffff',
+              color: 'var(--text-muted)',
+              border: '1px solid var(--border-subtle)',
+              fontSize: '0.78rem',
+              fontWeight: 500,
               cursor: 'pointer',
-              transition: 'all 0.2s',
+              transition: 'all 0.15s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.color = '#dc2626';
+              e.currentTarget.style.borderColor = '#fecaca';
+              e.currentTarget.style.backgroundColor = '#fef2f2';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.color = 'var(--text-muted)';
+              e.currentTarget.style.borderColor = 'var(--border-subtle)';
+              e.currentTarget.style.backgroundColor = '#ffffff';
             }}
           >
-            <LogOut size={14} />
+            <LogOut size={13} />
             <span>Sign Out</span>
           </button>
         </div>

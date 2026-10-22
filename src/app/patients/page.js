@@ -24,10 +24,24 @@ import {
   Clock,
   FileText,
   AlertCircle,
+  Lock,
+  Shield,
+  Eye,
 } from 'lucide-react';
 
 export default function PatientsPage() {
-  const { isAuthenticated, loading: authLoading } = useAuth();
+  const {
+    isAuthenticated,
+    loading: authLoading,
+    role,
+    isAdmin,
+    isManager,
+    isViewer,
+    isVisitor,
+    canCreate,
+    canEdit,
+    canDelete,
+  } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Patients & Doctors state
@@ -56,6 +70,13 @@ export default function PatientsPage() {
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [selectedPatient, setSelectedPatient] = useState(null);
+  const [viewModalOpen, setViewModalOpen] = useState(false);
+  const [viewPatient, setViewPatient] = useState(null);
+
+  const openViewModal = (patient) => {
+    setViewPatient(patient);
+    setViewModalOpen(true);
+  };
 
   // Form state
   const [form, setForm] = useState({
@@ -135,6 +156,10 @@ export default function PatientsPage() {
   // Handle Create Patient
   const handleCreatePatient = async (e) => {
     e.preventDefault();
+    if (!canCreate) {
+      showToast('Access Denied: Visitors have view-only access and cannot admit patients.', 'error');
+      return;
+    }
     try {
       const res = await patientApi.createPatient(form);
       if (res.success) {
@@ -151,6 +176,10 @@ export default function PatientsPage() {
   // Handle Edit Patient
   const handleEditPatient = async (e) => {
     e.preventDefault();
+    if (!canEdit) {
+      showToast('Access Denied: Visitors have view-only access and cannot edit patient records.', 'error');
+      return;
+    }
     try {
       const res = await patientApi.updatePatient(selectedPatient._id, form);
       if (res.success) {
@@ -165,6 +194,10 @@ export default function PatientsPage() {
 
   // Handle Delete Patient
   const handleDeletePatient = async (patient) => {
+    if (!canDelete) {
+      showToast('Access Denied: Visitors have view-only access and cannot delete patient records.', 'error');
+      return;
+    }
     if (confirm(`Are you sure you want to delete patient record for ${patient.name}?`)) {
       try {
         const res = await patientApi.deletePatient(patient._id);
@@ -179,6 +212,10 @@ export default function PatientsPage() {
   };
 
   const openEditModal = (patient) => {
+    if (!canEdit) {
+      openViewModal(patient);
+      return;
+    }
     setSelectedPatient(patient);
     setForm({
       name: patient.name,
@@ -235,56 +272,83 @@ export default function PatientsPage() {
         />
 
         <main className="page-wrapper">
-          {/* Top Action Bar */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              marginBottom: '24px',
-              flexWrap: 'wrap',
-              gap: '16px',
-            }}
-          >
+          {/* Header Action Bar */}
+          <div className="page-header-flex">
             <div>
-              <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#fff' }}>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-main)' }}>
                 Patient Registry
               </h2>
               <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                View and edit patient diagnosis, assigned doctors, and admission logs
+                Manage patient admission logs, diagnosis records, and doctor allocations
               </p>
             </div>
 
-            <button
-              onClick={() => {
-                resetForm();
-                setCreateModalOpen(true);
-              }}
-              className="btn btn-primary"
-            >
-              <Plus size={18} />
-              <span>Admit New Patient</span>
-            </button>
+            {canCreate ? (
+              <button
+                onClick={() => {
+                  resetForm();
+                  setCreateModalOpen(true);
+                }}
+                className="btn btn-primary"
+              >
+                <Plus size={16} />
+                <span>Admit New Patient</span>
+              </button>
+            ) : (
+              <span
+                style={{
+                  fontSize: '0.8rem',
+                  padding: '6px 12px',
+                  borderRadius: '6px',
+                  backgroundColor: '#f1f5f9',
+                  color: '#64748b',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  border: '1px solid #cbd5e1',
+                  fontWeight: 500,
+                }}
+              >
+                <Lock size={14} />
+                <span>Read-Only Access</span>
+              </span>
+            )}
           </div>
+
+          {/* Role Access Notice for Visitor / Viewer */}
+          {(isViewer || isVisitor) && (
+            <div
+              style={{
+                backgroundColor: '#f8fafc',
+                border: '1px solid #e2e8f0',
+                borderRadius: 'var(--radius-sm)',
+                padding: '10px 14px',
+                marginBottom: '16px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                fontSize: '0.82rem',
+                color: '#64748b',
+              }}
+            >
+              <Shield size={16} color="#64748b" style={{ flexShrink: 0 }} />
+              <span>
+                You are signed in as a <strong>Visitor (View-Only)</strong>. You have read-only access to browse and view patient records. Creating, editing, and deleting records are restricted to Manager and Admin accounts.
+              </span>
+            </div>
+          )}
 
           {/* Search & Filter Bar */}
           <div
             className="glass-panel"
             style={{
-              marginBottom: '24px',
+              marginBottom: '20px',
               display: 'flex',
               flexDirection: 'column',
-              gap: '16px',
+              gap: '14px',
             }}
           >
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                gap: '16px',
-                alignItems: 'end',
-              }}
-            >
+            <div className="filter-grid">
               {/* Search */}
               <div>
                 <label className="form-label">Search Patients</label>
@@ -305,7 +369,7 @@ export default function PatientsPage() {
                     onChange={(e) => setSearch(e.target.value)}
                     placeholder="Search name, phone, doctor..."
                     className="form-input"
-                    style={{ paddingLeft: '38px' }}
+                    style={{ paddingLeft: '36px' }}
                   />
                 </div>
               </div>
@@ -371,10 +435,10 @@ export default function PatientsPage() {
                   type="button"
                   onClick={resetFilters}
                   className="btn btn-secondary"
-                  style={{ width: '100%', height: '42px' }}
+                  style={{ width: '100%', height: '39px' }}
                 >
-                  <RefreshCw size={15} />
-                  <span>Reset Filters</span>
+                  <RefreshCw size={14} />
+                  <span>Reset</span>
                 </button>
               </div>
             </div>
@@ -382,7 +446,7 @@ export default function PatientsPage() {
 
           {/* Patients Data Table */}
           <div className="glass-panel" style={{ padding: 0, overflow: 'hidden' }}>
-            <div className="table-container" style={{ border: 'none' }}>
+            <div className="table-container" style={{ border: 'none', borderRadius: 0 }}>
               <table className="modern-table">
                 <thead>
                   <tr>
@@ -399,9 +463,9 @@ export default function PatientsPage() {
                 <tbody>
                   {loading ? (
                     <tr>
-                      <td colSpan={8} style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
-                          <RefreshCw size={18} className="animate-spin" />
+                      <td colSpan={8} style={{ textAlign: 'center', padding: '36px', color: 'var(--text-muted)' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                          <RefreshCw size={16} className="animate-spin" />
                           <span>Loading patient records...</span>
                         </div>
                       </td>
@@ -410,10 +474,10 @@ export default function PatientsPage() {
                     patients.map((pt) => (
                       <tr key={pt._id}>
                         <td>
-                          <div style={{ fontWeight: 700, color: '#fff', fontSize: '0.92rem' }}>
+                          <div style={{ fontWeight: 600, color: 'var(--text-main)', fontSize: '0.9rem' }}>
                             {pt.name}
                           </div>
-                          <div style={{ fontSize: '0.74rem', color: 'var(--text-dim)', display: 'flex', gap: '8px', alignItems: 'center' }}>
+                          <div style={{ fontSize: '0.74rem', color: 'var(--text-dim)', display: 'flex', gap: '6px', alignItems: 'center' }}>
                             <Phone size={11} /> {pt.phone}
                           </div>
                         </td>
@@ -429,7 +493,7 @@ export default function PatientsPage() {
                         <td>
                           {pt.doctorId ? (
                             <div>
-                              <div style={{ fontWeight: 600, color: 'var(--text-main)', fontSize: '0.88rem' }}>
+                              <div style={{ fontWeight: 500, color: 'var(--text-main)', fontSize: '0.86rem' }}>
                                 {pt.doctorId.name}
                               </div>
                               <div style={{ fontSize: '0.72rem', color: 'var(--primary)' }}>
@@ -437,12 +501,12 @@ export default function PatientsPage() {
                               </div>
                             </div>
                           ) : (
-                            <span style={{ color: 'var(--text-dim)' }}>Unassigned</span>
+                            <span style={{ color: 'var(--text-dim)', fontSize: '0.8rem' }}>Unassigned</span>
                           )}
                         </td>
 
                         <td>
-                          <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+                          <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
                             {new Date(pt.admissionDate).toLocaleDateString()}
                           </div>
                         </td>
@@ -450,10 +514,10 @@ export default function PatientsPage() {
                         <td>
                           <span
                             style={{
-                              fontSize: '0.75rem',
-                              padding: '3px 8px',
-                              borderRadius: '6px',
-                              background: 'var(--bg-surface-elevated)',
+                              fontSize: '0.74rem',
+                              padding: '2px 8px',
+                              borderRadius: '4px',
+                              backgroundColor: '#f1f5f9',
                               border: '1px solid var(--border-subtle)',
                               color: 'var(--text-muted)',
                               fontWeight: 500,
@@ -471,7 +535,7 @@ export default function PatientsPage() {
                               overflow: 'hidden',
                               textOverflow: 'ellipsis',
                               fontSize: '0.78rem',
-                              color: 'var(--text-dim)',
+                              color: 'var(--text-muted)',
                             }}
                             title={pt.notes}
                           >
@@ -480,30 +544,45 @@ export default function PatientsPage() {
                         </td>
 
                         <td style={{ textAlign: 'right' }}>
-                          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                            {/* View Patient Details (Available for ALL roles, including Visitor) */}
                             <button
-                              onClick={() => openEditModal(pt)}
+                              onClick={() => openViewModal(pt)}
                               className="btn-icon"
-                              title="Edit Patient Information"
+                              title="View Patient Record"
                             >
-                              <Edit2 size={16} />
+                              <Eye size={15} />
                             </button>
 
-                            <button
-                              onClick={() => handleDeletePatient(pt)}
-                              className="btn-icon"
-                              title="Delete Patient"
-                              style={{ color: '#fb7185' }}
-                            >
-                              <Trash2 size={16} />
-                            </button>
+                            {/* Edit Patient (Admin & Manager only) */}
+                            {canEdit && (
+                              <button
+                                onClick={() => openEditModal(pt)}
+                                className="btn-icon"
+                                title="Edit Patient Information"
+                              >
+                                <Edit2 size={15} />
+                              </button>
+                            )}
+
+                            {/* Delete Patient (Admin only) */}
+                            {canDelete && (
+                              <button
+                                onClick={() => handleDeletePatient(pt)}
+                                className="btn-icon"
+                                title="Delete Patient Record"
+                                style={{ color: '#dc2626' }}
+                              >
+                                <Trash2 size={15} />
+                              </button>
+                            )}
                           </div>
                         </td>
                       </tr>
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={8} style={{ textAlign: 'center', padding: '50px', color: 'var(--text-dim)' }}>
+                      <td colSpan={8} style={{ textAlign: 'center', padding: '40px', color: 'var(--text-dim)' }}>
                         No patients match the given search and filter parameters.
                       </td>
                     </tr>
@@ -540,7 +619,7 @@ export default function PatientsPage() {
             />
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <div className="form-grid-2">
             <div>
               <label className="form-label">Age *</label>
               <input
@@ -568,7 +647,7 @@ export default function PatientsPage() {
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <div className="form-grid-2">
             <div>
               <label className="form-label">Phone Contact *</label>
               <input
@@ -592,7 +671,7 @@ export default function PatientsPage() {
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <div className="form-grid-2">
             <div>
               <label className="form-label">Clinical Condition *</label>
               <select
@@ -626,7 +705,7 @@ export default function PatientsPage() {
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <div className="form-grid-2">
             <div>
               <label className="form-label">Admission Date</label>
               <input
@@ -696,7 +775,7 @@ export default function PatientsPage() {
             />
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <div className="form-grid-2">
             <div>
               <label className="form-label">Age *</label>
               <input
@@ -723,7 +802,7 @@ export default function PatientsPage() {
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <div className="form-grid-2">
             <div>
               <label className="form-label">Phone *</label>
               <input
@@ -745,7 +824,7 @@ export default function PatientsPage() {
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <div className="form-grid-2">
             <div>
               <label className="form-label">Condition *</label>
               <select
@@ -778,7 +857,7 @@ export default function PatientsPage() {
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <div className="form-grid-2">
             <div>
               <label className="form-label">Admission Date</label>
               <input
@@ -827,6 +906,129 @@ export default function PatientsPage() {
             </button>
           </div>
         </form>
+      </Modal>
+
+      {/* VIEW PATIENT MODAL (Read-Only for Visitors & all users) */}
+      <Modal
+        isOpen={viewModalOpen}
+        onClose={() => setViewModalOpen(false)}
+        title={`Patient Record: ${viewPatient?.name || ''}`}
+        maxWidth="680px"
+      >
+        {viewPatient && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '12px 16px',
+                backgroundColor: '#f8fafc',
+                borderRadius: '8px',
+                border: '1px solid var(--border-subtle)',
+                flexWrap: 'wrap',
+                gap: '8px',
+              }}
+            >
+              <div>
+                <h4 style={{ fontSize: '1.05rem', fontWeight: 600, color: 'var(--text-main)', margin: 0 }}>
+                  {viewPatient.name}
+                </h4>
+                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>
+                  {viewPatient.age} years old • {viewPatient.gender}
+                </p>
+              </div>
+              <Badge value={viewPatient.condition} />
+            </div>
+
+            <div className="form-grid-2">
+              <div style={{ padding: '12px 14px', borderRadius: '6px', border: '1px solid var(--border-subtle)', backgroundColor: '#ffffff' }}>
+                <div style={{ fontSize: '0.72rem', color: 'var(--text-dim)', textTransform: 'uppercase', fontWeight: 600, marginBottom: '6px' }}>
+                  Contact Information
+                </div>
+                <div style={{ fontSize: '0.85rem', color: 'var(--text-main)', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Phone size={14} color="var(--primary)" /> <span>{viewPatient.phone || 'N/A'}</span>
+                  </div>
+                  {viewPatient.email && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <Mail size={14} color="var(--primary)" /> <span>{viewPatient.email}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div style={{ padding: '12px 14px', borderRadius: '6px', border: '1px solid var(--border-subtle)', backgroundColor: '#ffffff' }}>
+                <div style={{ fontSize: '0.72rem', color: 'var(--text-dim)', textTransform: 'uppercase', fontWeight: 600, marginBottom: '6px' }}>
+                  Admission & Status
+                </div>
+                <div style={{ fontSize: '0.85rem', color: 'var(--text-main)', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <div>
+                    <span style={{ color: 'var(--text-muted)' }}>Status: </span>
+                    <strong>{viewPatient.status || 'Admitted'}</strong>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Calendar size={14} color="var(--primary)" />
+                    <span>Admitted {viewPatient.admissionDate ? new Date(viewPatient.admissionDate).toLocaleDateString() : 'N/A'}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div style={{ padding: '12px 14px', borderRadius: '6px', border: '1px solid var(--border-subtle)', backgroundColor: '#ffffff' }}>
+              <div style={{ fontSize: '0.72rem', color: 'var(--text-dim)', textTransform: 'uppercase', fontWeight: 600, marginBottom: '6px' }}>
+                Attending Physician
+              </div>
+              {viewPatient.doctorId ? (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <div
+                    style={{
+                      width: '36px',
+                      height: '36px',
+                      borderRadius: '8px',
+                      backgroundColor: 'var(--primary-light)',
+                      color: 'var(--primary)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <Stethoscope size={18} />
+                  </div>
+                  <div>
+                    <div style={{ fontWeight: 600, color: 'var(--text-main)', fontSize: '0.88rem' }}>
+                      {viewPatient.doctorId.name}
+                    </div>
+                    <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)' }}>
+                      {viewPatient.doctorId.specialization} • {viewPatient.doctorId.hospital || 'Hospital Staff'}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <span style={{ fontSize: '0.85rem', color: 'var(--text-dim)' }}>No doctor currently assigned.</span>
+              )}
+            </div>
+
+            <div style={{ padding: '12px 14px', borderRadius: '6px', border: '1px solid var(--border-subtle)', backgroundColor: '#ffffff' }}>
+              <div style={{ fontSize: '0.72rem', color: 'var(--text-dim)', textTransform: 'uppercase', fontWeight: 600, marginBottom: '6px' }}>
+                Clinical Observations & Diagnosis Notes
+              </div>
+              <p style={{ margin: 0, fontSize: '0.85rem', color: viewPatient.notes ? 'var(--text-main)' : 'var(--text-dim)', lineHeight: 1.5 }}>
+                {viewPatient.notes || 'No clinical notes recorded.'}
+              </p>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '6px' }}>
+              <button
+                type="button"
+                onClick={() => setViewModalOpen(false)}
+                className="btn btn-secondary"
+              >
+                Close Record
+              </button>
+            </div>
+          </div>
+        )}
       </Modal>
 
       {/* Toast */}

@@ -12,11 +12,9 @@ import {
   Stethoscope,
   Users,
   AlertTriangle,
-  UserCheck,
   TrendingUp,
   Activity,
   ArrowUpRight,
-  PlusCircle,
   Calendar,
 } from 'lucide-react';
 import {
@@ -69,30 +67,30 @@ export default function DashboardPage() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          background: 'var(--bg-main)',
+          backgroundColor: 'var(--bg-main)',
           color: 'var(--text-muted)',
         }}
       >
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
-          <Activity size={36} color="var(--primary)" className="animate-pulse" />
-          <span>Validating medical portal session...</span>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+          <Activity size={32} color="var(--primary)" />
+          <span style={{ fontSize: '0.9rem' }}>Loading portal session...</span>
         </div>
       </div>
     );
   }
 
   const conditionColors = {
-    Critical: '#f43f5e',
+    Critical: '#ef4444',
     Serious: '#f59e0b',
     Stable: '#10b981',
     Chronic: '#8b5cf6',
-    Recovering: '#00d2ff',
+    Recovering: '#2563eb',
   };
 
   const conditionChartData = stats?.conditionDistribution?.map((item) => ({
     name: item.condition,
     value: item.count,
-    color: conditionColors[item.condition] || '#3a86ff',
+    color: conditionColors[item.condition] || '#3b82f6',
   })) || [];
 
   return (
@@ -102,39 +100,40 @@ export default function DashboardPage() {
       <div className="main-content">
         <Header
           onMenuClick={() => setSidebarOpen(true)}
-          title="Clinical Operations Dashboard"
-          subtitle="Real-time aggregation, doctor allocations & patient intake metrics"
+          title="Clinical Dashboard"
+          subtitle="Real-time patient intake and doctor distribution metrics"
         />
 
         <main className="page-wrapper">
           {error && (
             <div
               style={{
-                background: 'rgba(244, 63, 94, 0.1)',
-                border: '1px solid rgba(244, 63, 94, 0.3)',
-                color: '#fb7185',
-                padding: '14px 20px',
-                borderRadius: '12px',
-                marginBottom: '24px',
+                backgroundColor: '#fef2f2',
+                border: '1px solid #fecaca',
+                color: '#dc2626',
+                padding: '12px 16px',
+                borderRadius: 'var(--radius-sm)',
+                marginBottom: '20px',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '12px',
+                gap: '10px',
+                fontSize: '0.85rem',
               }}
             >
-              <AlertTriangle size={18} />
+              <AlertTriangle size={17} />
               <span>{error}</span>
             </div>
           )}
 
           {/* Metric Stats Cards */}
-          <div className="grid-cols-4" style={{ marginBottom: '28px' }}>
+          <div className="grid-cols-4" style={{ marginBottom: '24px' }}>
             <StatCard
               title="Total Doctors"
               value={stats?.summary?.totalDoctors}
               icon={Stethoscope}
               color="cyan"
-              subtitle="Specialists registered"
-              trend="+8.2% vs last month"
+              subtitle="Registered physicians"
+              trend="+8.2%"
             />
             <StatCard
               title="Total Patients"
@@ -142,28 +141,28 @@ export default function DashboardPage() {
               icon={Users}
               color="emerald"
               subtitle="Active medical records"
-              trend="+14% this quarter"
+              trend="+14%"
             />
             <StatCard
               title="Avg Patients / Doctor"
               value={stats?.summary?.avgPatientsPerDoctor}
               icon={TrendingUp}
               color="purple"
-              subtitle="Balanced caseload ratio"
-              trend="Optimal"
+              subtitle="Staff caseload ratio"
+              trend="Balanced"
             />
             <StatCard
               title="Critical Patients"
               value={stats?.summary?.criticalPatients}
               icon={AlertTriangle}
               color="rose"
-              subtitle="High acuity monitoring"
-              trend="Priority Attention"
+              subtitle="High acuity attention"
+              trend="Priority"
             />
           </div>
 
-          {/* Charts Row 1: Patients Per Doctor & Date-Based Statistics */}
-          <div className="grid-cols-2" style={{ marginBottom: '28px' }}>
+          {/* Charts Row 1: Patients Per Doctor & Date-Based Admissions */}
+          <div className="grid-cols-2" style={{ marginBottom: '24px' }}>
             {/* Chart 1: Patients per Doctor */}
             <div className="glass-panel">
               <div
@@ -171,15 +170,17 @@ export default function DashboardPage() {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  marginBottom: '20px',
+                  marginBottom: '16px',
+                  flexWrap: 'wrap',
+                  gap: '8px',
                 }}
               >
                 <div>
-                  <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#fff' }}>
-                    Patients Per Doctor Distribution
+                  <h3 style={{ fontSize: '0.98rem', fontWeight: 600, color: 'var(--text-main)' }}>
+                    Patients Per Doctor
                   </h3>
-                  <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                    Workload distribution across medical staff
+                  <p style={{ fontSize: '0.76rem', color: 'var(--text-muted)' }}>
+                    Caseload distribution across medical staff
                   </p>
                 </div>
                 <Link
@@ -188,24 +189,24 @@ export default function DashboardPage() {
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: '4px',
-                    fontSize: '0.8rem',
+                    fontSize: '0.78rem',
                     color: 'var(--primary)',
-                    fontWeight: 600,
+                    fontWeight: 500,
                   }}
                 >
-                  <span>Manage Doctors</span>
-                  <ArrowUpRight size={14} />
+                  <span>Manage</span>
+                  <ArrowUpRight size={13} />
                 </Link>
               </div>
 
-              <div style={{ width: '100%', height: '300px' }}>
+              <div style={{ width: '100%', height: '260px' }}>
                 {stats?.patientsPerDoctor?.length > 0 ? (
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart
                       data={stats.patientsPerDoctor}
                       margin={{ top: 10, right: 10, left: -20, bottom: 20 }}
                     >
-                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                       <XAxis
                         dataKey="name"
                         stroke="var(--text-dim)"
@@ -218,26 +219,21 @@ export default function DashboardPage() {
                       <YAxis stroke="var(--text-dim)" fontSize={11} allowDecimals={false} />
                       <Tooltip
                         contentStyle={{
-                          backgroundColor: '#111a2e',
-                          borderColor: 'rgba(255,255,255,0.1)',
+                          backgroundColor: '#ffffff',
+                          borderColor: '#e2e8f0',
                           borderRadius: '8px',
-                          color: '#fff',
-                          fontSize: '0.85rem',
+                          color: '#0f172a',
+                          fontSize: '0.8rem',
+                          boxShadow: '0 4px 6px -1px rgba(0,0,0,0.08)',
                         }}
-                        cursor={{ fill: 'rgba(0, 210, 255, 0.05)' }}
+                        cursor={{ fill: 'rgba(37, 99, 235, 0.04)' }}
                       />
                       <Bar
                         dataKey="patientCount"
                         name="Patients Assigned"
-                        fill="url(#doctorBarGrad)"
-                        radius={[6, 6, 0, 0]}
+                        fill="#2563eb"
+                        radius={[4, 4, 0, 0]}
                       />
-                      <defs>
-                        <linearGradient id="doctorBarGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#00d2ff" stopOpacity={0.9} />
-                          <stop offset="100%" stopColor="#3a86ff" stopOpacity={0.4} />
-                        </linearGradient>
-                      </defs>
                     </BarChart>
                   </ResponsiveContainer>
                 ) : (
@@ -248,9 +244,10 @@ export default function DashboardPage() {
                       alignItems: 'center',
                       justifyContent: 'center',
                       color: 'var(--text-dim)',
+                      fontSize: '0.85rem',
                     }}
                   >
-                    No doctor patient data available.
+                    No doctor caseload data available.
                   </div>
                 )}
               </div>
@@ -263,32 +260,34 @@ export default function DashboardPage() {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  marginBottom: '20px',
+                  marginBottom: '16px',
+                  flexWrap: 'wrap',
+                  gap: '8px',
                 }}
               >
                 <div>
-                  <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#fff' }}>
-                    Date-Based Admissions Trend
+                  <h3 style={{ fontSize: '0.98rem', fontWeight: 600, color: 'var(--text-main)' }}>
+                    Patient Admissions Trend
                   </h3>
-                  <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                    Daily patient registrations over the past 7 days
+                  <p style={{ fontSize: '0.76rem', color: 'var(--text-muted)' }}>
+                    Daily patient admissions (Past 7 Days)
                   </p>
                 </div>
                 <div
                   style={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '6px',
+                    gap: '4px',
                     fontSize: '0.75rem',
                     color: 'var(--text-muted)',
                   }}
                 >
-                  <Calendar size={14} />
-                  <span>Last 7 Days</span>
+                  <Calendar size={13} />
+                  <span>Recent</span>
                 </div>
               </div>
 
-              <div style={{ width: '100%', height: '300px' }}>
+              <div style={{ width: '100%', height: '260px' }}>
                 {stats?.dateWiseStats?.length > 0 ? (
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart
@@ -297,11 +296,11 @@ export default function DashboardPage() {
                     >
                       <defs>
                         <linearGradient id="admissionArea" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#10b981" stopOpacity={0.6} />
-                          <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                          <stop offset="5%" stopColor="#10b981" stopOpacity={0.25} />
+                          <stop offset="95%" stopColor="#10b981" stopOpacity={0.02} />
                         </linearGradient>
                       </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                       <XAxis
                         dataKey="label"
                         stroke="var(--text-dim)"
@@ -311,19 +310,20 @@ export default function DashboardPage() {
                       <YAxis stroke="var(--text-dim)" fontSize={11} allowDecimals={false} />
                       <Tooltip
                         contentStyle={{
-                          backgroundColor: '#111a2e',
-                          borderColor: 'rgba(255,255,255,0.1)',
+                          backgroundColor: '#ffffff',
+                          borderColor: '#e2e8f0',
                           borderRadius: '8px',
-                          color: '#fff',
-                          fontSize: '0.85rem',
+                          color: '#0f172a',
+                          fontSize: '0.8rem',
+                          boxShadow: '0 4px 6px -1px rgba(0,0,0,0.08)',
                         }}
                       />
                       <Area
                         type="monotone"
                         dataKey="admissions"
-                        name="New Admissions"
+                        name="Admissions"
                         stroke="#10b981"
-                        strokeWidth={2.5}
+                        strokeWidth={2}
                         fillOpacity={1}
                         fill="url(#admissionArea)"
                       />
@@ -337,6 +337,7 @@ export default function DashboardPage() {
                       alignItems: 'center',
                       justifyContent: 'center',
                       color: 'var(--text-dim)',
+                      fontSize: '0.85rem',
                     }}
                   >
                     No admissions logged this week.
@@ -346,30 +347,30 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Charts Row 2: Condition Breakdown & Recent Patients */}
-          <div className="grid-cols-2" style={{ marginBottom: '28px' }}>
+          {/* Charts Row 2: Condition Breakdown & Department Distribution */}
+          <div className="grid-cols-2" style={{ marginBottom: '24px' }}>
             {/* Condition Breakdown */}
             <div className="glass-panel">
-              <div style={{ marginBottom: '20px' }}>
-                <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#fff' }}>
+              <div style={{ marginBottom: '16px' }}>
+                <h3 style={{ fontSize: '0.98rem', fontWeight: 600, color: 'var(--text-main)' }}>
                   Patient Condition Distribution
                 </h3>
-                <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                  Acuity categorization across all hospital units
+                <p style={{ fontSize: '0.76rem', color: 'var(--text-muted)' }}>
+                  Acuity categorization across hospital units
                 </p>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', height: '260px' }}>
-                <div style={{ width: '55%', height: '100%' }}>
+              <div className="pie-container" style={{ display: 'flex', alignItems: 'center', minHeight: '220px' }}>
+                <div className="pie-chart-wrap" style={{ width: '55%', height: '220px' }}>
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
                         data={conditionChartData}
                         cx="50%"
                         cy="50%"
-                        innerRadius={55}
-                        outerRadius={85}
-                        paddingAngle={4}
+                        innerRadius={50}
+                        outerRadius={75}
+                        paddingAngle={3}
                         dataKey="value"
                       >
                         {conditionChartData.map((entry, index) => (
@@ -378,11 +379,12 @@ export default function DashboardPage() {
                       </Pie>
                       <Tooltip
                         contentStyle={{
-                          backgroundColor: '#111a2e',
-                          borderColor: 'rgba(255,255,255,0.1)',
+                          backgroundColor: '#ffffff',
+                          borderColor: '#e2e8f0',
                           borderRadius: '8px',
-                          color: '#fff',
-                          fontSize: '0.85rem',
+                          color: '#0f172a',
+                          fontSize: '0.8rem',
+                          boxShadow: '0 4px 6px -1px rgba(0,0,0,0.08)',
                         }}
                       />
                     </PieChart>
@@ -390,11 +392,12 @@ export default function DashboardPage() {
                 </div>
 
                 <div
+                  className="pie-legend-wrap"
                   style={{
                     width: '45%',
                     display: 'flex',
                     flexDirection: 'column',
-                    gap: '10px',
+                    gap: '8px',
                     paddingLeft: '12px',
                   }}
                 >
@@ -405,21 +408,21 @@ export default function DashboardPage() {
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'space-between',
-                        fontSize: '0.82rem',
+                        fontSize: '0.8rem',
                       }}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <span
                           style={{
-                            width: '10px',
-                            height: '10px',
-                            borderRadius: '3px',
+                            width: '8px',
+                            height: '8px',
+                            borderRadius: '50%',
                             backgroundColor: item.color,
                           }}
                         />
                         <span style={{ color: 'var(--text-muted)' }}>{item.name}</span>
                       </div>
-                      <strong style={{ color: '#fff' }}>{item.value}</strong>
+                      <strong style={{ color: 'var(--text-main)' }}>{item.value}</strong>
                     </div>
                   ))}
                 </div>
@@ -428,16 +431,16 @@ export default function DashboardPage() {
 
             {/* Department Breakdown */}
             <div className="glass-panel">
-              <div style={{ marginBottom: '20px' }}>
-                <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#fff' }}>
-                  Doctor Specializations
+              <div style={{ marginBottom: '16px' }}>
+                <h3 style={{ fontSize: '0.98rem', fontWeight: 600, color: 'var(--text-main)' }}>
+                  Specialization Overview
                 </h3>
-                <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                  Departmental staff distribution
+                <p style={{ fontSize: '0.76rem', color: 'var(--text-muted)' }}>
+                  Staff distribution by medical department
                 </p>
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {stats?.specializationDistribution?.slice(0, 5).map((spec) => {
                   const pct = Math.round(
                     (spec.count / (stats.summary.totalDoctors || 1)) * 100
@@ -448,22 +451,22 @@ export default function DashboardPage() {
                         style={{
                           display: 'flex',
                           justifyContent: 'space-between',
-                          fontSize: '0.85rem',
-                          marginBottom: '6px',
+                          fontSize: '0.82rem',
+                          marginBottom: '4px',
                         }}
                       >
-                        <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>
+                        <span style={{ fontWeight: 500, color: 'var(--text-main)' }}>
                           {spec.specialization}
                         </span>
-                        <span style={{ color: 'var(--text-dim)', fontSize: '0.78rem' }}>
+                        <span style={{ color: 'var(--text-dim)', fontSize: '0.75rem' }}>
                           {spec.count} doctor{spec.count > 1 ? 's' : ''} ({pct}%)
                         </span>
                       </div>
                       <div
                         style={{
-                          height: '8px',
-                          borderRadius: '4px',
-                          background: 'var(--bg-surface-elevated)',
+                          height: '6px',
+                          borderRadius: '3px',
+                          backgroundColor: '#f1f5f9',
                           overflow: 'hidden',
                         }}
                       >
@@ -471,9 +474,9 @@ export default function DashboardPage() {
                           style={{
                             width: `${pct}%`,
                             height: '100%',
-                            background: 'linear-gradient(90deg, #3a86ff, #00d2ff)',
-                            borderRadius: '4px',
-                            transition: 'width 0.5s ease',
+                            backgroundColor: '#2563eb',
+                            borderRadius: '3px',
+                            transition: 'width 0.4s ease',
                           }}
                         />
                       </div>
@@ -485,30 +488,33 @@ export default function DashboardPage() {
           </div>
 
           {/* Recent Admissions Section */}
-          <div className="glass-panel">
+          <div className="glass-panel" style={{ padding: 0, overflow: 'hidden' }}>
             <div
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                marginBottom: '18px',
+                padding: '16px 20px',
+                borderBottom: '1px solid var(--border-subtle)',
+                flexWrap: 'wrap',
+                gap: '12px',
               }}
             >
               <div>
-                <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#fff' }}>
+                <h3 style={{ fontSize: '0.98rem', fontWeight: 600, color: 'var(--text-main)' }}>
                   Recently Admitted Patients
                 </h3>
-                <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                  Latest recorded intakes awaiting review or treatment
+                <p style={{ fontSize: '0.76rem', color: 'var(--text-muted)' }}>
+                  Latest patient intake records
                 </p>
               </div>
-              <Link href="/patients" className="btn btn-secondary" style={{ padding: '8px 14px', fontSize: '0.8rem' }}>
+              <Link href="/patients" className="btn btn-secondary" style={{ padding: '6px 12px', fontSize: '0.78rem' }}>
                 <span>View All Patients</span>
-                <ArrowUpRight size={14} />
+                <ArrowUpRight size={13} />
               </Link>
             </div>
 
-            <div className="table-container">
+            <div className="table-container" style={{ border: 'none', borderRadius: 0 }}>
               <table className="modern-table">
                 <thead>
                   <tr>
@@ -525,8 +531,8 @@ export default function DashboardPage() {
                     stats.recentPatients.map((patient) => (
                       <tr key={patient._id}>
                         <td>
-                          <div style={{ fontWeight: 600, color: '#fff' }}>{patient.name}</div>
-                          <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>
+                          <div style={{ fontWeight: 600, color: 'var(--text-main)' }}>{patient.name}</div>
+                          <div style={{ fontSize: '0.74rem', color: 'var(--text-dim)' }}>
                             {patient.phone}
                           </div>
                         </td>
@@ -539,22 +545,22 @@ export default function DashboardPage() {
                         <td>
                           {patient.doctorId ? (
                             <div>
-                              <div style={{ fontWeight: 600 }}>{patient.doctorId.name}</div>
+                              <div style={{ fontWeight: 500, color: 'var(--text-main)' }}>{patient.doctorId.name}</div>
                               <div style={{ fontSize: '0.72rem', color: 'var(--text-dim)' }}>
                                 {patient.doctorId.specialization}
                               </div>
                             </div>
                           ) : (
-                            <span style={{ color: 'var(--text-dim)' }}>Unassigned</span>
+                            <span style={{ color: 'var(--text-dim)', fontSize: '0.8rem' }}>Unassigned</span>
                           )}
                         </td>
                         <td>
                           <span
                             style={{
-                              fontSize: '0.75rem',
-                              padding: '3px 8px',
-                              borderRadius: '6px',
-                              background: 'var(--bg-surface-elevated)',
+                              fontSize: '0.74rem',
+                              padding: '2px 8px',
+                              borderRadius: '4px',
+                              backgroundColor: '#f1f5f9',
                               border: '1px solid var(--border-subtle)',
                               color: 'var(--text-muted)',
                             }}
@@ -562,15 +568,15 @@ export default function DashboardPage() {
                             {patient.status}
                           </span>
                         </td>
-                        <td style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+                        <td style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
                           {new Date(patient.admissionDate).toLocaleDateString()}
                         </td>
                       </tr>
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={6} style={{ textAlign: 'center', padding: '30px', color: 'var(--text-dim)' }}>
-                        No patient intake records found.
+                      <td colSpan={6} style={{ textAlign: 'center', padding: '24px', color: 'var(--text-dim)' }}>
+                        No recent patient records found.
                       </td>
                     </tr>
                   )}
@@ -580,6 +586,24 @@ export default function DashboardPage() {
           </div>
         </main>
       </div>
+
+      <style jsx>{`
+        @media (max-width: 640px) {
+          .pie-container {
+            flex-direction: column !important;
+            height: auto !important;
+            gap: 16px;
+          }
+          .pie-chart-wrap {
+            width: 100% !important;
+            height: 200px !important;
+          }
+          .pie-legend-wrap {
+            width: 100% !important;
+            padding-left: 0 !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }

@@ -25,10 +25,23 @@ import {
   Building,
   RefreshCw,
   AlertCircle,
+  Lock,
+  Shield,
 } from 'lucide-react';
 
 export default function DoctorsPage() {
-  const { isAuthenticated, loading: authLoading } = useAuth();
+  const {
+    isAuthenticated,
+    loading: authLoading,
+    role,
+    isAdmin,
+    isManager,
+    isViewer,
+    isVisitor,
+    canCreate,
+    canEdit,
+    canDelete,
+  } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Doctors State
@@ -139,6 +152,10 @@ export default function DoctorsPage() {
   // Handle Create Doctor
   const handleCreateDoctor = async (e) => {
     e.preventDefault();
+    if (!canCreate) {
+      showToast('Access Denied: Visitors have view-only access and cannot create doctors.', 'error');
+      return;
+    }
     try {
       const res = await doctorApi.createDoctor(doctorForm);
       if (res.success) {
@@ -162,6 +179,10 @@ export default function DoctorsPage() {
   // Handle Edit Doctor
   const handleEditDoctor = async (e) => {
     e.preventDefault();
+    if (!canEdit) {
+      showToast('Access Denied: Visitors have view-only access and cannot edit doctor profiles.', 'error');
+      return;
+    }
     try {
       const res = await doctorApi.updateDoctor(selectedDoctor._id, doctorForm);
       if (res.success) {
@@ -176,6 +197,10 @@ export default function DoctorsPage() {
 
   // Handle Delete Doctor
   const handleDeleteDoctor = async (doctor) => {
+    if (!canDelete) {
+      showToast('Access Denied: Visitors have view-only access and cannot delete doctors.', 'error');
+      return;
+    }
     if (
       confirm(
         `Are you sure you want to delete ${doctor.name}? This will remove all associated patients.`
@@ -212,6 +237,10 @@ export default function DoctorsPage() {
 
   // Delete Patient from Doctor List
   const handleDeletePatientFromDoctor = async (patientId) => {
+    if (!canDelete) {
+      showToast('Access Denied: Visitors have view-only access and cannot delete patients.', 'error');
+      return;
+    }
     if (confirm('Delete this patient from doctor list?')) {
       try {
         const res = await doctorApi.deletePatientFromDoctor(selectedDoctor._id, patientId);
@@ -231,6 +260,10 @@ export default function DoctorsPage() {
   // Handle Add Patient under Doctor
   const handleAddPatientSubmit = async (e) => {
     e.preventDefault();
+    if (!canCreate) {
+      showToast('Access Denied: Visitors have view-only access and cannot add patients.', 'error');
+      return;
+    }
     try {
       const res = await doctorApi.addPatientToDoctor(patientDoctorTarget._id, patientForm);
       if (res.success) {
@@ -283,63 +316,90 @@ export default function DoctorsPage() {
 
         <main className="page-wrapper">
           {/* Header Action Bar */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              marginBottom: '24px',
-              flexWrap: 'wrap',
-              gap: '16px',
-            }}
-          >
+          <div className="page-header-flex">
             <div>
-              <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#fff' }}>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-main)' }}>
                 Physicians Directory
               </h2>
               <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                Create, track workload, and manage doctor-patient relationships
+                Track workload, hospital affiliations, and patient assignments
               </p>
             </div>
 
-            <button
-              onClick={() => {
-                setDoctorForm({
-                  name: '',
-                  specialization: '',
-                  hospital: '',
-                  phone: '',
-                  email: '',
-                  status: 'Active',
-                });
-                setCreateModalOpen(true);
-              }}
-              className="btn btn-primary"
-            >
-              <Plus size={18} />
-              <span>Create New Doctor</span>
-            </button>
+            {canCreate ? (
+              <button
+                onClick={() => {
+                  setDoctorForm({
+                    name: '',
+                    specialization: '',
+                    hospital: '',
+                    phone: '',
+                    email: '',
+                    status: 'Active',
+                  });
+                  setCreateModalOpen(true);
+                }}
+                className="btn btn-primary"
+              >
+                <Plus size={16} />
+                <span>Add New Doctor</span>
+              </button>
+            ) : (
+              <span
+                style={{
+                  fontSize: '0.8rem',
+                  padding: '6px 12px',
+                  borderRadius: '6px',
+                  backgroundColor: '#f1f5f9',
+                  color: '#64748b',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  border: '1px solid #cbd5e1',
+                  fontWeight: 500,
+                }}
+              >
+                <Lock size={14} />
+                <span>Read-Only Access</span>
+              </span>
+            )}
           </div>
+
+          {/* Role Access Notice for Visitor / Viewer */}
+          {(isViewer || isVisitor) && (
+            <div
+              style={{
+                backgroundColor: '#f8fafc',
+                border: '1px solid #e2e8f0',
+                borderRadius: 'var(--radius-sm)',
+                padding: '10px 14px',
+                marginBottom: '16px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                fontSize: '0.82rem',
+                color: '#64748b',
+              }}
+            >
+              <Shield size={16} color="#64748b" style={{ flexShrink: 0 }} />
+              <span>
+                You are signed in as a <strong>Visitor (View-Only)</strong>. You have read-only access to browse doctor profiles, specialties, and patient caseloads. Creating, editing, and deleting records are restricted to Manager and Admin accounts.
+              </span>
+            </div>
+          )}
 
           {/* Search & Filter Bar */}
           <div
             className="glass-panel"
             style={{
-              marginBottom: '24px',
+              marginBottom: '20px',
               display: 'flex',
               flexDirection: 'column',
-              gap: '16px',
+              gap: '14px',
             }}
           >
-            {/* Top row: Search and Dates */}
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-                gap: '16px',
-                alignItems: 'end',
-              }}
-            >
+            {/* Filter grid */}
+            <div className="filter-grid">
               {/* Search */}
               <div>
                 <label className="form-label">Search Doctors</label>
@@ -360,7 +420,7 @@ export default function DoctorsPage() {
                     onChange={(e) => setSearch(e.target.value)}
                     placeholder="Search by name, email, specialization..."
                     className="form-input"
-                    style={{ paddingLeft: '38px' }}
+                    style={{ paddingLeft: '36px' }}
                   />
                 </div>
               </div>
@@ -401,7 +461,7 @@ export default function DoctorsPage() {
 
               {/* Date Filters */}
               <div>
-                <label className="form-label">Registered From</label>
+                <label className="form-label">From Date</label>
                 <input
                   type="date"
                   value={startDate}
@@ -411,7 +471,7 @@ export default function DoctorsPage() {
               </div>
 
               <div>
-                <label className="form-label">Registered To</label>
+                <label className="form-label">To Date</label>
                 <input
                   type="date"
                   value={endDate}
@@ -421,14 +481,14 @@ export default function DoctorsPage() {
               </div>
 
               {/* Clear button */}
-              <div style={{ display: 'flex', gap: '8px' }}>
+              <div>
                 <button
                   type="button"
                   onClick={resetFilters}
                   className="btn btn-secondary"
-                  style={{ width: '100%', height: '42px' }}
+                  style={{ width: '100%', height: '39px' }}
                 >
-                  <RefreshCw size={15} />
+                  <RefreshCw size={14} />
                   <span>Reset</span>
                 </button>
               </div>
@@ -437,7 +497,7 @@ export default function DoctorsPage() {
 
           {/* Doctors Table */}
           <div className="glass-panel" style={{ padding: 0, overflow: 'hidden' }}>
-            <div className="table-container" style={{ border: 'none' }}>
+            <div className="table-container" style={{ border: 'none', borderRadius: 0 }}>
               <table className="modern-table">
                 <thead>
                   <tr>
@@ -453,9 +513,9 @@ export default function DoctorsPage() {
                 <tbody>
                   {loading ? (
                     <tr>
-                      <td colSpan={7} style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
-                          <RefreshCw size={18} className="animate-spin" />
+                      <td colSpan={7} style={{ textAlign: 'center', padding: '36px', color: 'var(--text-muted)' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                          <RefreshCw size={16} className="animate-spin" />
                           <span>Loading doctor records...</span>
                         </div>
                       </td>
@@ -464,29 +524,30 @@ export default function DoctorsPage() {
                     doctors.map((doc) => (
                       <tr key={doc._id}>
                         <td>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                             <div
                               style={{
-                                width: '40px',
-                                height: '40px',
-                                borderRadius: '10px',
-                                background: 'linear-gradient(135deg, rgba(0,210,255,0.2), rgba(58,134,255,0.2))',
-                                border: '1px solid rgba(0,210,255,0.3)',
+                                width: '38px',
+                                height: '38px',
+                                borderRadius: '8px',
+                                backgroundColor: 'var(--primary-light)',
+                                border: '1px solid var(--primary-border)',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
                                 color: 'var(--primary)',
                                 fontWeight: 700,
+                                flexShrink: 0,
                               }}
                             >
-                              <Stethoscope size={20} />
+                              <Stethoscope size={18} />
                             </div>
                             <div>
-                              <div style={{ fontWeight: 700, color: '#fff', fontSize: '0.95rem' }}>
+                              <div style={{ fontWeight: 600, color: 'var(--text-main)', fontSize: '0.9rem' }}>
                                 {doc.name}
                               </div>
                               <div style={{ fontSize: '0.74rem', color: 'var(--text-dim)' }}>
-                                Member since {new Date(doc.createdAt).toLocaleDateString()}
+                                Added {new Date(doc.createdAt).toLocaleDateString()}
                               </div>
                             </div>
                           </div>
@@ -495,13 +556,13 @@ export default function DoctorsPage() {
                         <td>
                           <span
                             style={{
-                              fontSize: '0.8rem',
-                              fontWeight: 600,
-                              padding: '4px 10px',
-                              borderRadius: '6px',
-                              background: 'rgba(58, 134, 255, 0.12)',
-                              color: '#60a5fa',
-                              border: '1px solid rgba(58, 134, 255, 0.25)',
+                              fontSize: '0.78rem',
+                              fontWeight: 500,
+                              padding: '3px 8px',
+                              borderRadius: '4px',
+                              backgroundColor: '#eff6ff',
+                              color: '#2563eb',
+                              border: '1px solid #bfdbfe',
                             }}
                           >
                             {doc.specialization}
@@ -509,14 +570,14 @@ export default function DoctorsPage() {
                         </td>
 
                         <td>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.84rem' }}>
                             <Building size={14} color="var(--text-dim)" />
                             <span>{doc.hospital}</span>
                           </div>
                         </td>
 
                         <td>
-                          <div style={{ fontSize: '0.82rem', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                          <div style={{ fontSize: '0.8rem', display: 'flex', flexDirection: 'column', gap: '2px' }}>
                             <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                               <Phone size={12} color="var(--text-dim)" />
                               {doc.phone}
@@ -532,21 +593,21 @@ export default function DoctorsPage() {
                           <button
                             onClick={() => handleOpenPatientsModal(doc)}
                             style={{
-                              background: 'rgba(16, 185, 129, 0.1)',
-                              border: '1px solid rgba(16, 185, 129, 0.3)',
-                              color: '#34d399',
-                              padding: '5px 12px',
-                              borderRadius: '20px',
-                              fontSize: '0.8rem',
-                              fontWeight: 700,
+                              backgroundColor: '#f0fdf4',
+                              border: '1px solid #bbf7d0',
+                              color: '#16a34a',
+                              padding: '4px 10px',
+                              borderRadius: '999px',
+                              fontSize: '0.78rem',
+                              fontWeight: 600,
                               cursor: 'pointer',
                               display: 'inline-flex',
                               alignItems: 'center',
-                              gap: '6px',
+                              gap: '5px',
                               transition: 'all 0.15s',
                             }}
                           >
-                            <Users size={14} />
+                            <Users size={13} />
                             <span>{doc.patientCount || 0} Patients</span>
                           </button>
                         </td>
@@ -556,10 +617,10 @@ export default function DoctorsPage() {
                             style={{
                               fontSize: '0.74rem',
                               padding: '3px 8px',
-                              borderRadius: '6px',
-                              background: doc.status === 'Active' ? 'rgba(16,185,129,0.1)' : 'rgba(245,158,11,0.1)',
-                              color: doc.status === 'Active' ? '#34d399' : '#fbbf24',
-                              border: `1px solid ${doc.status === 'Active' ? 'rgba(16,185,129,0.3)' : 'rgba(245,158,11,0.3)'}`,
+                              borderRadius: '999px',
+                              backgroundColor: doc.status === 'Active' ? '#f0fdf4' : '#fffbeb',
+                              color: doc.status === 'Active' ? '#16a34a' : '#d97706',
+                              border: `1px solid ${doc.status === 'Active' ? '#bbf7d0' : '#fde68a'}`,
                               fontWeight: 600,
                             }}
                           >
@@ -568,65 +629,71 @@ export default function DoctorsPage() {
                         </td>
 
                         <td style={{ textAlign: 'right' }}>
-                          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                            {/* View Patients */}
+                          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                            {/* View Patients (All Roles) */}
                             <button
                               onClick={() => handleOpenPatientsModal(doc)}
                               className="btn-icon"
                               title="View Patient List"
                             >
-                              <Eye size={16} />
+                              <Eye size={15} />
                             </button>
 
-                            {/* Add Patient under this doctor */}
-                            <button
-                              onClick={() => {
-                                setPatientDoctorTarget(doc);
-                                setAddPatientModalOpen(true);
-                              }}
-                              className="btn-icon"
-                              title="Add Patient to Doctor"
-                              style={{ color: 'var(--primary)' }}
-                            >
-                              <UserPlus size={16} />
-                            </button>
+                            {/* Add Patient under this doctor (Admin & Manager) */}
+                            {canCreate && (
+                              <button
+                                onClick={() => {
+                                  setPatientDoctorTarget(doc);
+                                  setAddPatientModalOpen(true);
+                                }}
+                                className="btn-icon"
+                                title="Add Patient to Doctor"
+                                style={{ color: 'var(--primary)' }}
+                              >
+                                <UserPlus size={15} />
+                              </button>
+                            )}
 
-                            {/* Edit Doctor */}
-                            <button
-                              onClick={() => {
-                                setSelectedDoctor(doc);
-                                setDoctorForm({
-                                  name: doc.name,
-                                  specialization: doc.specialization,
-                                  hospital: doc.hospital,
-                                  phone: doc.phone,
-                                  email: doc.email,
-                                  status: doc.status || 'Active',
-                                });
-                                setEditModalOpen(true);
-                              }}
-                              className="btn-icon"
-                              title="Edit Doctor"
-                            >
-                              <Edit2 size={16} />
-                            </button>
+                            {/* Edit Doctor (Admin & Manager) */}
+                            {canEdit && (
+                              <button
+                                onClick={() => {
+                                  setSelectedDoctor(doc);
+                                  setDoctorForm({
+                                    name: doc.name,
+                                    specialization: doc.specialization,
+                                    hospital: doc.hospital,
+                                    phone: doc.phone,
+                                    email: doc.email,
+                                    status: doc.status || 'Active',
+                                  });
+                                  setEditModalOpen(true);
+                                }}
+                                className="btn-icon"
+                                title="Edit Doctor"
+                              >
+                                <Edit2 size={15} />
+                              </button>
+                            )}
 
-                            {/* Delete Doctor */}
-                            <button
-                              onClick={() => handleDeleteDoctor(doc)}
-                              className="btn-icon"
-                              title="Delete Doctor"
-                              style={{ color: '#fb7185' }}
-                            >
-                              <Trash2 size={16} />
-                            </button>
+                            {/* Delete Doctor (Admin Only) */}
+                            {canDelete && (
+                              <button
+                                onClick={() => handleDeleteDoctor(doc)}
+                                className="btn-icon"
+                                title="Delete Doctor (Admin Only)"
+                                style={{ color: '#dc2626' }}
+                              >
+                                <Trash2 size={15} />
+                              </button>
+                            )}
                           </div>
                         </td>
                       </tr>
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={7} style={{ textAlign: 'center', padding: '50px', color: 'var(--text-dim)' }}>
+                      <td colSpan={7} style={{ textAlign: 'center', padding: '40px', color: 'var(--text-dim)' }}>
                         No doctors match the selected search or filter criteria.
                       </td>
                     </tr>
@@ -663,7 +730,7 @@ export default function DoctorsPage() {
             />
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <div className="form-grid-2">
             <div>
               <label className="form-label">Specialization *</label>
               <input
@@ -688,7 +755,7 @@ export default function DoctorsPage() {
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <div className="form-grid-2">
             <div>
               <label className="form-label">Phone Number *</label>
               <input
@@ -759,7 +826,7 @@ export default function DoctorsPage() {
             />
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <div className="form-grid-2">
             <div>
               <label className="form-label">Specialization *</label>
               <input
@@ -782,7 +849,7 @@ export default function DoctorsPage() {
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <div className="form-grid-2">
             <div>
               <label className="form-label">Phone Number *</label>
               <input
@@ -848,13 +915,15 @@ export default function DoctorsPage() {
               alignItems: 'center',
               justifyContent: 'space-between',
               padding: '14px 18px',
-              borderRadius: '10px',
-              background: 'var(--bg-surface-elevated)',
+              borderRadius: '8px',
+              backgroundColor: '#f8fafc',
               border: '1px solid var(--border-subtle)',
+              flexWrap: 'wrap',
+              gap: '10px',
             }}
           >
             <div>
-              <div style={{ fontWeight: 700, color: '#fff' }}>
+              <div style={{ fontWeight: 600, color: 'var(--text-main)', fontSize: '0.9rem' }}>
                 {selectedDoctor?.specialization} • {selectedDoctor?.hospital}
               </div>
               <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
@@ -862,17 +931,19 @@ export default function DoctorsPage() {
               </div>
             </div>
 
-            <button
-              onClick={() => {
-                setPatientDoctorTarget(selectedDoctor);
-                setAddPatientModalOpen(true);
-              }}
-              className="btn btn-primary"
-              style={{ padding: '8px 14px', fontSize: '0.82rem' }}
-            >
-              <UserPlus size={15} />
-              <span>Add Patient to Dr. {selectedDoctor?.name?.split(' ')[1] || ''}</span>
-            </button>
+            {canCreate && (
+              <button
+                onClick={() => {
+                  setPatientDoctorTarget(selectedDoctor);
+                  setAddPatientModalOpen(true);
+                }}
+                className="btn btn-primary"
+                style={{ padding: '7px 12px', fontSize: '0.8rem' }}
+              >
+                <UserPlus size={14} />
+                <span>Add Patient</span>
+              </button>
+            )}
           </div>
 
           {/* Patients List Table */}
@@ -884,13 +955,13 @@ export default function DoctorsPage() {
                   <th>Age/Gender</th>
                   <th>Condition</th>
                   <th>Admission</th>
-                  <th style={{ textAlign: 'right' }}>Remove</th>
+                  {canDelete && <th style={{ textAlign: 'right' }}>Remove</th>}
                 </tr>
               </thead>
               <tbody>
                 {patientsLoading ? (
                   <tr>
-                    <td colSpan={5} style={{ textAlign: 'center', padding: '30px' }}>
+                    <td colSpan={canDelete ? 5 : 4} style={{ textAlign: 'center', padding: '30px', color: 'var(--text-dim)' }}>
                       Loading patient records...
                     </td>
                   </tr>
@@ -898,8 +969,8 @@ export default function DoctorsPage() {
                   doctorPatients.map((p) => (
                     <tr key={p._id}>
                       <td>
-                        <div style={{ fontWeight: 600, color: '#fff' }}>{p.name}</div>
-                        <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>{p.phone}</div>
+                        <div style={{ fontWeight: 600, color: 'var(--text-main)' }}>{p.name}</div>
+                        <div style={{ fontSize: '0.74rem', color: 'var(--text-dim)' }}>{p.phone}</div>
                       </td>
                       <td>
                         {p.age} yrs • {p.gender}
@@ -910,21 +981,23 @@ export default function DoctorsPage() {
                       <td style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
                         {new Date(p.admissionDate).toLocaleDateString()}
                       </td>
-                      <td style={{ textAlign: 'right' }}>
-                        <button
-                          onClick={() => handleDeletePatientFromDoctor(p._id)}
-                          className="btn-icon"
-                          title="Delete from doctor list"
-                          style={{ color: '#fb7185' }}
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </td>
+                      {canDelete && (
+                        <td style={{ textAlign: 'right' }}>
+                          <button
+                            onClick={() => handleDeletePatientFromDoctor(p._id)}
+                            className="btn-icon"
+                            title="Delete from doctor list"
+                            style={{ color: '#dc2626' }}
+                          >
+                            <Trash2 size={15} />
+                          </button>
+                        </td>
+                      )}
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={5} style={{ textAlign: 'center', padding: '40px', color: 'var(--text-dim)' }}>
+                    <td colSpan={canDelete ? 5 : 4} style={{ textAlign: 'center', padding: '36px', color: 'var(--text-dim)' }}>
                       No patients currently assigned to this doctor.
                     </td>
                   </tr>
@@ -960,7 +1033,7 @@ export default function DoctorsPage() {
             />
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <div className="form-grid-2">
             <div>
               <label className="form-label">Age *</label>
               <input
@@ -988,7 +1061,7 @@ export default function DoctorsPage() {
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <div className="form-grid-2">
             <div>
               <label className="form-label">Phone Contact *</label>
               <input
@@ -1012,7 +1085,7 @@ export default function DoctorsPage() {
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <div className="form-grid-2">
             <div>
               <label className="form-label">Clinical Condition *</label>
               <select
